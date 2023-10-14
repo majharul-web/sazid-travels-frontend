@@ -11,7 +11,7 @@ const SuperAdminPage = () => {
           },
         ]}
       />
-      <h1>This page is for super admin</h1>
+      <h1>Welcome to super admin</h1>
     </div>
   );
 };

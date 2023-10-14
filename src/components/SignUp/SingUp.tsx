@@ -10,31 +10,45 @@ import { storeUserInfo } from "@/services/auth.service";
 import { useRouter } from "next/navigation";
 import { yupResolver } from "@hookform/resolvers/yup";
 import { loginSchema } from "@/schemas/login";
+import FormTextArea from "../Forms/FormTextArea";
+import { useCustomerSignUpMutation } from "@/redux/api/customerApi";
 import Link from "next/link";
+import { ENUM_USER_ROLE } from "@/types";
 
 type FormValues = {
   id: string;
   password: string;
 };
 
-const LoginPage = () => {
-  const [userLogin] = useUserLoginMutation();
+const SingUpPage = () => {
+  const [customerSignUp] = useCustomerSignUpMutation();
   const router = useRouter();
 
   // console.log(isLoggedIn());
 
   const onSubmit: SubmitHandler<FormValues> = async (data: any) => {
+    data.role = ENUM_USER_ROLE.CUSTOMER;
+
     try {
-      const res = await userLogin({ ...data }).unwrap();
-      console.log(res);
-      if (res?.accessToken) {
-        router.push("/profile");
-        message.success("User logged in successfully!");
+      const res = await customerSignUp({ ...data }).unwrap();
+
+      if (res?.id) {
+        router.push("/login");
+        message.success("User signed up successfully!");
+      } else {
+        message.error("Unable to create user");
       }
-      storeUserInfo({ accessToken: res?.accessToken });
-      // console.log(res);
-    } catch (err: any) {
-      console.error(err.message);
+    } catch (err) {
+      // Log the error for debugging
+      console.log("Error caught:", err);
+
+      if (err.error) {
+        message.error(err.error.message);
+      } else if (err.message) {
+        message.error(err.message);
+      } else {
+        message.error("An unexpected error occurred.");
+      }
     }
   };
 
@@ -57,7 +71,7 @@ const LoginPage = () => {
             margin: "15px 0px",
           }}
         >
-          Login your account
+          Create your account
         </h1>
         <div>
           <Form submitHandler={onSubmit} resolver={yupResolver(loginSchema)}>
@@ -76,6 +90,13 @@ const LoginPage = () => {
                 margin: "15px 0px",
               }}
             >
+              <FormInput name='name' type='text' size='large' label='User Name' placeholder='name' required />
+            </div>
+            <div
+              style={{
+                margin: "15px 0px",
+              }}
+            >
               <FormInput
                 name='password'
                 type='password'
@@ -85,11 +106,31 @@ const LoginPage = () => {
                 required
               />
             </div>
+            <div
+              style={{
+                margin: "15px 0px",
+              }}
+            >
+              <FormInput
+                name='contactNo'
+                type='number'
+                size='large'
+                label='Contact No'
+                placeholder='contact No'
+              />
+            </div>
+            <div
+              style={{
+                margin: "15px 0px",
+              }}
+            >
+              <FormTextArea name='address' label='Address' placeholder='address...' />
+            </div>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
               <Button type='primary' htmlType='submit'>
-                Login
+                Sing Up
               </Button>
-              <Link href='/signup'>New User?Create an account</Link>
+              <Link href='/login'>Already have an account?</Link>
             </div>
           </Form>
         </div>
@@ -98,4 +139,4 @@ const LoginPage = () => {
   );
 };
 
-export default LoginPage;
+export default SingUpPage;
